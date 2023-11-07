@@ -1,0 +1,5 @@
+*.sage.py
+__pycache__
+*.json
+*.cProfile
+*.vscode

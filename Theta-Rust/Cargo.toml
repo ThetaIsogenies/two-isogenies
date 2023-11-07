@@ -1,0 +1,52 @@
+[package]
+name = "theta_rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand_core = "0.6"
+hex = "0.4.3"
+num-bigint = "0.4.3"
+sha2 = "0.10.2"
+sha3 = "0.10.6"
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+# A benchmark for the cost of multiplications, squares and inversions for the
+# three base fields. Used to compute optimat strategies.
+
+# [[bench]]
+# name = "msi"
+# path = "benches/msi.rs"
+# harness = false
+
+# A benchmark for the isogeny chain with no strategy 
+# About 10x slower
+
+# [[bench]]
+# name = "no_strat"
+# path = "benches/no_strat.rs"
+# harness = false
+
+# [[bench]]
+# name = "isogeny_chain_naive_strat"
+# path = "benches/isogeny_chain_naive_strat.rs"
+# harness = false
+
+[[bench]]
+name = "sqi_chain"
+path = "benches/sqi_chain.rs"
+harness = false
+
+[[bench]]
+name = "isogeny_chain"
+path = "benches/isogeny_chain.rs"
+harness = false
+
+[[bench]]
+name = "festa_chain"
+path = "benches/festa_chain.rs"
+harness = false
