@@ -52,7 +52,7 @@ class CouplePoint:
         elif i == 1:
             return self.P2
         else:
-            raise ValueError("Index {} is out of range.".format(i))
+            raise IndexError("Index {} is out of range.".format(i))
 
     def __setitem__(self, i, P):
         # Operator to set self[i]=P.
@@ -61,7 +61,7 @@ class CouplePoint:
         elif i == 1:
             self.P2 = P
         else:
-            raise ValueError("Index {} is out of range.".format(i))
+            raise IndexError("Index {} is out of range.".format(i))
 
     def __eq__(self, other):
         return self.P1 == other.P1 and self.P2 == other.P2
