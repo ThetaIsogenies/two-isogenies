@@ -46,6 +46,7 @@ pub(crate) const fn subborrow_u64(x: u64, y: u64, c: u8) -> (u64, u8) {
 // impl!!
 // Compute x*y over 128 bits, returned as two 64-bit words (lo, hi)
 #[cfg(target_arch = "x86_64")]
+#[inline(always)]
 pub(crate) fn umull(x: u64, y: u64) -> (u64, u64) {
     use core::arch::x86_64::_mulx_u64;
     unsafe {

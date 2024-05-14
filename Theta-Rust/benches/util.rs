@@ -37,7 +37,7 @@ pub struct DRNG {
 
 impl DRNG {
     pub fn new() -> Self {
-        Self::from_seed(&core_cycles().to_le_bytes())
+        Self::from_seed(&u64::MAX.to_le_bytes())
     }
 
     pub fn from_seed(seed: &[u8]) -> Self {
