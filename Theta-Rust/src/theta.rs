@@ -40,16 +40,24 @@ macro_rules! define_theta_structure {
             (A, B, C, D)
         }
 
-        /// Given four elements of Fq, first square each coordinate and
-        /// then compute the hadamard transform
-        /// Cost: 4S, 8a
+        /// Given four elements of Fq, first square each coordinate
+        /// Cost: 4S
         #[inline(always)]
-        fn to_squared_theta(X: &Fq, Y: &Fq, Z: &Fq, T: &Fq) -> (Fq, Fq, Fq, Fq) {
+        fn to_squared_coords(X: &Fq, Y: &Fq, Z: &Fq, T: &Fq) -> (Fq, Fq, Fq, Fq) {
             let XX = X.square();
             let YY = Y.square();
             let ZZ = Z.square();
             let TT = T.square();
 
+            (XX, YY, ZZ, TT)
+        }
+
+        /// Given four elements of Fq, first square each coordinate and
+        /// then compute the hadamard transform
+        /// Cost: 4S, 8a
+        #[inline(always)]
+        fn to_squared_theta(X: &Fq, Y: &Fq, Z: &Fq, T: &Fq) -> (Fq, Fq, Fq, Fq) {
+            let (XX, YY, ZZ, TT) = to_squared_coords(X, Y, Z, T);
             to_hadamard(&XX, &YY, &ZZ, &TT)
         }
 
@@ -164,29 +172,31 @@ macro_rules! define_theta_structure {
 
             /// For doubling and also computing isogenies, we need the following
             /// constants, which we can precompute once for each ThetaStructure.
-            /// Cost: 16M + 6S
+            /// Cost: 14M + 5S
             #[inline]
             pub fn precomputation(O0: &ThetaPoint) -> [Fq; 8] {
                 let (a, b, c, d) = O0.coords();
-                let (AA, BB, CC, DD) = O0.squared_theta();
+                let (aa, bb, cc, dd) = to_squared_coords(&a, &b, &c, &d);
 
                 // Compute projectively a/b = a^2*c*d, etc.
-                let aa = a.square();
                 let ab = &a * &b;
                 let cd = &c * &d;
                 let x0 = &ab * &cd;
                 let y0 = &aa * &cd;
-                let z0 = &aa * &b * &d;
-                let t0 = &aa * &b * &c;
+                let aab = &aa * b;
+                let z0 = &aab * &d;
+                let t0 = &aab * &c;
 
                 // Compute projectively A^2/B^2 = A^4*C^2*D^2, etc.
+                let (AA, BB, CC, DD) = to_hadamard(&aa, &bb, &cc, &dd);
                 let A4 = AA.square();
                 let AABB = &AA * &BB;
                 let CCDD = &CC * &DD;
                 let X0 = &AABB * &CCDD;
                 let Y0 = &A4 * &CCDD;
-                let Z0 = &A4 * &BB * &DD;
-                let T0 = &A4 * &BB * &CC;
+                let A4BB = &A4 * &BB;
+                let Z0 = &A4BB * &DD;
+                let T0 = &A4BB * &CC;
 
                 [x0, y0, z0, t0, X0, Y0, Z0, T0]
             }
