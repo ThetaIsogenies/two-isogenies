@@ -49,6 +49,13 @@ def sqrt_Fp2(x, canonical=False):
     Fast computation of square-roots in SageMath using that p = 3 mod 4
     """
     F = x.parent()
+
+    if F.degree() != 2 or F.gen()**2 != -1:
+        # base field is not 𝔽ₚ[√-1]: fall back to built-in .sqrt() method
+        if canonical:
+            return min(x.sqrt(extend=False, all=True))
+        return x.sqrt(extend=False)
+
     x0, x1 = x.list()
 
     if x1 == 0:
