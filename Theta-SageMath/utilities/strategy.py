@@ -33,8 +33,6 @@ def optimised_strategy_old(n, mul_c=1):
 import functools
 import sys
 
-sys.setrecursionlimit(1500)
-
 # fmt: off
 def optimised_strategy(n):
     """
@@ -114,6 +112,9 @@ def optimised_strategy(n):
                 doubles.append(d)
                 kernels.append(point - d)
         return doubles
+
+    if sys.getrecursionlimit() < 1000 + n:
+        sys.setrecursionlimit(1000 + n)
 
     # Compute the cost and populate the checkpoints
     c = cost(n, True)
