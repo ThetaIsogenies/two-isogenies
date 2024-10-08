@@ -30,13 +30,8 @@ def optimised_strategy_old(n, mul_c=1):
     return S[n]
 
 
-import functools
-import sys
-
-sys.setrecursionlimit(1500)
-
 # fmt: off
-def optimised_strategy(n):
+def optimised_strategy(N):
     """
     A modification of
 
@@ -55,35 +50,38 @@ def optimised_strategy(n):
     left_cost = (47, 333)       # (regular_cost, left_branch_cost) Double
     right_cost = (24, 250)  # (regular_cost, first_right_cost) Images
     checkpoints = ({}, {})  # (inner, left edge)
+    cost = {}
 
-    @functools.cache
-    def cost(n, leftmost):
-        """
-        The minimal cost to get to all children of a height `n` tree.
-        If `leftmost` is true, we're still on the leftmost edge of the "outermost" tree
+    # Compute the cost and populate the checkpoints
+    for n in range(1, N+1):
+        for leftmost in (False, True):
+            """
+            The minimal cost to get to all children of a height `n` tree.
+            If `leftmost` is true, we're still on the leftmost edge of the "outermost" tree
 
-        Updates a global "Check points" which are the points along a branch which we 
-        keep for later
-        """
-        if n <= 1:
-            return 0  # no cost here
+            Updates a global "Check points" which are the points along a branch which we
+            keep for later
+            """
+            if n <= 1:
+                cost[n, leftmost] = 0  # no cost here
+                continue
 
-        c = float("inf")
-        for i in range(1, n):  # where to branch off
-            # We need `i` moves on the left branch and `n - i` on the right branch
-            # to make sure the corresponding subtrees don't overlap and everything
-            # is covered exactly once
-            thiscost = sum([
-                cost(n - i, leftmost),    # We still need to finish off our walk to the left
-                i * left_cost[leftmost],  # The cost for the moves on the left branch
-                cost(i, False),           # The tree on the right side, now definitely not leftmost
-                right_cost[leftmost] + (n - i - 1) * right_cost[False],  # The cost of moving right, maybe one at the first right cost
-            ])
-            # If a new lower cost has been found, update values
-            if thiscost < c:
-                c = thiscost
-                checkpoints[leftmost][n] = i
-        return c
+            c = float("inf")
+            for i in range(1, n):  # where to branch off
+                # We need `i` moves on the left branch and `n - i` on the right branch
+                # to make sure the corresponding subtrees don't overlap and everything
+                # is covered exactly once
+                thiscost = sum([
+                    cost[n - i, leftmost],    # We still need to finish off our walk to the left
+                    i * left_cost[leftmost],  # The cost for the moves on the left branch
+                    cost[i, False],           # The tree on the right side, now definitely not leftmost
+                    right_cost[leftmost] + (n - i - 1) * right_cost[False],  # The cost of moving right, maybe one at the first right cost
+                ])
+                # If a new lower cost has been found, update values
+                if thiscost < c:
+                    c = thiscost
+                    checkpoints[leftmost][n] = i
+            cost[n, leftmost] = c
 
     def convert(n, checkpoints):
         """
@@ -115,10 +113,7 @@ def optimised_strategy(n):
                 kernels.append(point - d)
         return doubles
 
-    # Compute the cost and populate the checkpoints
-    c = cost(n, True)
-
     # Use the checkpoints to compute the list
-    l = convert(n, checkpoints)
+    l = convert(N, checkpoints)
 
     return l
