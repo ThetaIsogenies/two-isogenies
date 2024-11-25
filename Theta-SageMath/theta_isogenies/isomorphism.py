@@ -88,9 +88,13 @@ class SplittingIsomorphism(Isomorphism):
             raise ValueError("Domain must be a Theta Structure")
         self._domain = domain
 
-        # We need a second root of unity
+        # We need a fourth root of unity
         if zeta is None:
-            self.zeta = domain.base_ring().gen()
+            F = domain.base_ring()
+            if F.degree() == 2 and F.gen()**2 == -1:
+                self.zeta = F.gen()
+            else:
+                self.zeta = F(-1).sqrt(extend=False)
 
         # Select the precomputed change of basis to map the zero to (11, 11) by
         # identifying the current zero index.
@@ -157,7 +161,7 @@ class SplittingIsomorphism(Isomorphism):
         """
 
         null_coords = self.domain().coords()
-        i = self.zeta  # self.domain().base_ring().gen()
+        i = self.zeta
         assert i**2 == -1
 
         # Computed from description in the paper.
