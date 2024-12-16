@@ -794,46 +794,38 @@ macro_rules! define_theta_structure {
             U_constant
         }
 
-        /// For each possible even index compute the level 2,2 constant. Return
-        /// the even index for which this constant is zero. This only fails for
-        /// bad input in which case the whole chain would fail. Evaluates all
-        /// positions, and so should run in constant time.
-        fn identify_even_index(null_point: &ThetaPoint) -> (usize, usize) {
-            const EVEN_INDICIES: [(usize, usize); 10] = [
-                (0, 0),
-                (0, 1),
-                (0, 2),
-                (0, 3),
-                (1, 0),
-                (1, 2),
-                (2, 0),
-                (2, 1),
-                (3, 0),
-                (3, 3),
-            ];
-            // Initialise the return tuple
-            let mut chi_zero = 0;
-            let mut i_zero = 0;
-
-            for (chi, i) in EVEN_INDICIES.iter() {
-                let U_sqr = level_22_constants_sqr(null_point, chi, i);
-
-                // When U_sqr is zero, U_sqr_is_zero = 0xFF...FF
-                // and 0 otherwise, so we can use this as a mask
-                // to select the non-zero index through the loop
-                let U_sqr_is_zero = U_sqr.iszero();
-                chi_zero |= (*chi as u32 & U_sqr_is_zero);
-                i_zero |= (*i as u32 & U_sqr_is_zero);
+        
+        /// Set a matrix of 16 elements constructed as a list to either M1 or
+        /// M2 depending on whether the control word ctl is 0x00000000 or 
+        /// 0xFFFFFFFF, respectively.
+        /// The value of ctl MUST be either 0x00000000 or 0xFFFFFFFF.
+        fn matrix_set_cond(M1: &mut [Fq; 16], M2: [Fq; 16], ctl: u32){
+            for i in 0..16 {
+                M1[i].set_cond(&M2[i], ctl);
             }
-            (chi_zero as usize, i_zero as usize)
         }
 
         /// We can precompute 10 different symplectic transforms which
-        /// correspond to each of the possible 10 even indicies which could be
+        /// correspond to each of the possible 10 even indices which could be
         /// zero. We can select the right change of basis by using the above
         /// functions and then selecting the correct map accordingly.
         fn compute_splitting_matrix(null_point: &ThetaPoint) -> [Fq; 16] {
-    #[rustfmt::skip]
+
+            // even indices, weird order as matrices are a weird order...
+            const EVEN_INDICIES: [(usize, usize); 10] = [
+                (0, 2),
+                (3, 3),
+                (0, 3),
+                (2, 1),
+                (0, 1),
+                (1, 2),
+                (2, 0),
+                (3, 0),
+                (1, 0),
+                (0, 0),
+            ];
+
+            // splitting maps as arrays of 16 elements
             const MAPS: [[Fq; 16]; 10] = [
                 [
                     Fq::ONE, Fq::ZERO, Fq::ZERO, Fq::ZERO,
@@ -897,26 +889,18 @@ macro_rules! define_theta_structure {
                 ],
             ];
 
-            // Identity the current location of the zero
-            let zero_location = identify_even_index(null_point);
+            // For each possible even index compute the level 2,2 constant.
+            // If the constant is zero, we use a constant time selection to
+            // set M to be the correct, precomputed splitting matrix
+            let mut M = [Fq::ZERO; 16];
+            for (index, (chi, i)) in EVEN_INDICIES.iter().enumerate() {
+                let U_sqr = level_22_constants_sqr(null_point, chi, i);
 
-            // Compute the corresponding matrix to map the zero to
-            // the desired place
-            // TODO: is a match like this the best thing to do in Rust??
-            let M: [Fq; 16];
-            match zero_location {
-                (0, 2) => M = MAPS[0],
-                (3, 3) => M = MAPS[1],
-                (0, 3) => M = MAPS[2],
-                (2, 1) => M = MAPS[3],
-                (0, 1) => M = MAPS[4],
-                (1, 2) => M = MAPS[5],
-                (2, 0) => M = MAPS[6],
-                (3, 0) => M = MAPS[7],
-                (1, 0) => M = MAPS[8],
-                (0, 0) => M = MAPS[9],
-                // The above locations are an exhaustive list of possible inputs, not sure how to tell rust this...
-                _ => panic!("Unreachable"),
+                // When U_sqr is zero, U_sqr_is_zero = 0xFF...FF
+                // and 0 otherwise, so we can use this as a mask
+                // to select the non-zero index through the loop
+                let U_sqr_is_zero = U_sqr.iszero();
+                matrix_set_cond(&mut M, MAPS[index], U_sqr_is_zero);
             }
 
             M
