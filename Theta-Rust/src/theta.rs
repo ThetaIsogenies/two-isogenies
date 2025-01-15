@@ -615,10 +615,9 @@ macro_rules! define_theta_structure {
         /// Given the 8-torsion above the kernel, compute the codomain of the
         /// (2,2)-isogeny and the image of all points in `image_points`
         /// Cost:
-        /// Codomain: 8S + 11M
+        /// Codomain: 8S + 9M
         /// Image: 4S + 4M
         fn two_isogeny(
-            domain: &ThetaStructure,
             T1: &ThetaPoint,
             T2: &ThetaPoint,
             image_points: &mut [ThetaPoint],
@@ -630,17 +629,20 @@ macro_rules! define_theta_structure {
             let (zA, tB, zC, tD) = T2.squared_theta();
 
             // Compute the codomain coordinates
-            let zAtB = &zA * &tB;
-            let mut A = &xA * &zAtB;
-            let mut B = &xB * &zAtB;
-            let mut C = &zC * &xA * &tB;
-            let mut D = &tD * &xB * &zA;
+            let xAtB = &xA * &tB;
+            let zAxB = &zA * &xB;
+            let zCtD = &zC * &tD;
+
+            let mut A = &zA * &xAtB;
+            let mut B = &tB * &zAxB;
+            let mut C = &zC * &xAtB;
+            let mut D = &tD * &zAxB;
 
             // Inverses are precomputed for evaluation below
-            let A_inv = &domain.arithmetic_precom[4] * &A;
-            let B_inv = &domain.arithmetic_precom[5] * &B;
-            let C_inv = &domain.arithmetic_precom[6] * &C;
-            let D_inv = &domain.arithmetic_precom[7] * &D;
+            let A_inv = &xB * &zCtD;
+            let B_inv = &xA * &zCtD;
+            let C_inv = D;
+            let D_inv = C;
 
             // Finish computing the codomain coordinates
             // For the penultimate case, we skip the hadamard transformation
@@ -1132,11 +1134,11 @@ macro_rules! define_theta_structure {
                 // coordinates appearing from the product structure. To avoid these, we
                 // use the hadamard transform to avoid them,
                 if k == (n - 2) {
-                    domain = two_isogeny(&domain, &Tp1, &Tp2, &mut kernel_pts, [false, false])
+                    domain = two_isogeny(&Tp1, &Tp2, &mut kernel_pts, [false, false])
                 } else if k == (n - 1) {
                     domain = two_isogeny_to_product(&Tp1, &Tp2, &mut kernel_pts)
                 } else {
-                    domain = two_isogeny(&domain, &Tp1, &Tp2, &mut kernel_pts, [false, true])
+                    domain = two_isogeny(&Tp1, &Tp2, &mut kernel_pts, [false, true])
                 }
             }
 
@@ -1261,11 +1263,11 @@ macro_rules! define_theta_structure {
                 // coordinates appearing from the product structure. To avoid these, we
                 // use the hadamard transform to avoid them,
                 if k == (n - 2) {
-                    domain = two_isogeny(&domain, &Tp1, &Tp2, &mut kernel_pts, [false, false])
+                    domain = two_isogeny(&Tp1, &Tp2, &mut kernel_pts, [false, false])
                 } else if k == (n - 1) {
                     domain = two_isogeny_to_product(&Tp1, &Tp2, &mut kernel_pts)
                 } else {
-                    domain = two_isogeny(&domain, &Tp1, &Tp2, &mut kernel_pts, [false, true])
+                    domain = two_isogeny(&Tp1, &Tp2, &mut kernel_pts, [false, true])
                 }
             }
 
