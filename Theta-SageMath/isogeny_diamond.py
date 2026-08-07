@@ -19,7 +19,7 @@ from montgomery_isogenies.isogenies_x_only import (
 from utilities.supersingular import torsion_basis, fix_torsion_basis_renes
 from utilities.order import has_order_D
 from utilities.discrete_log import BiDLP
-from utilities.strategy import optimised_strategy
+from utilities.strategy import optimised_strategy, optimised_strategy_old
 
 # Some precomputed
 # ea, eb, X, Y
@@ -94,12 +94,12 @@ if __name__ == "__main__":
 
     def test_generate_splitting_kernel(param_index=1):
         """ """
-        ea, eb, X, Y = DIAMONDS[param_index]
+        f, ea, eb, X, Y = DIAMONDS[param_index]
 
         # Configure a prime which allows an easy diamond configuration:
         A = ZZ(2**ea)
         B = ZZ(3**eb)
-        p = 4 * A * B - 1
+        p = f * 4 * A * B - 1
         F = GF(p**2, name="i", modulus=[1, 0, 1])
 
         # Cofactor isogeny is the sum of squares
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         N1 = B
         N2 = C
         N_constant = F(N1 + N2) / F(N1 - N2)
-        strategy = optimised_strategy(ea - 1, mul_c=0.175)
+        strategy = optimised_strategy_old(ea - 1, mul_c=0.175)
 
         # Compute the chain and make sure it splits
         ker_Phi_scaled = (4 * P2c, 4 * Q2c, 4 * PA, 4 * QA)
