@@ -327,7 +327,6 @@ def FromJacToProd(G1, G2, G3, N_constant=None):
     # Cost: 1M 1S
     if N_constant is None:
         DD = r*(a1*b2 - b1*a2) + q**2
-        DD = q**2
         D  = DD.sqrt()
     else:
         D  = q*N_constant
