@@ -87,6 +87,7 @@ class SplittingIsomorphism(Isomorphism):
         if not isinstance(domain, ThetaStructure):
             raise ValueError("Domain must be a Theta Structure")
         self._domain = domain
+        self.zeta = zeta
 
         # We need a fourth root of unity
         if zeta is None:
